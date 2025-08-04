@@ -1,0 +1,46 @@
+<div class="container-fluid">
+    <div class="row min-vh-100">
+        <div class="col-md-2 bg-secondary text-light min-vh-100 p-3 position-relative">
+            <div class="head text-center fw-bold mb-4" style="font-size: 1.5rem;">
+                Q&A查詢系統
+            </div>
+
+            <div class="dropdown">
+                <button class="btn btn-dark dropdown-toggle w-100" type="button" id="dropdownMenuButton"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                    功能選單
+                </button>
+
+                <style>
+                    .dropdown-menu .dropdown-item:hover {
+                        background-color: #6c757d;
+                    }
+                </style>
+                <ul class="dropdown-menu w-100 bg-dark" aria-labelledby="dropdownMenuButton">
+                    <li><a class="dropdown-item text-light" href="#" onclick="showTab('query')">查詢問答</a></li>
+                    <li><a class="dropdown-item text-light" href="#" onclick="showTab('search')">問題查找</a></li>
+                    <li><a class="dropdown-item text-light" href="#" onclick="showTab('upload')">檔案上傳</a></li>
+                </ul>
+            </div>
+
+            <div class="position-absolute bottom-0 start-0 w-100 p-3 text-center">
+                <button type="button" class="btn btn-outline-light w-100" data-bs-toggle="modal"
+                    data-bs-target="#staticBackdrop">
+                    登入
+                </button>
+            </div>
+        </div>
+
+
+        <div class="col-10">
+            <div class="head text-center text-light mb-4" id="mainContentTitle"
+                style="font-size: 1.8rem; font-weight: bold;">
+                查詢問答
+            </div>
+
+            {% include 'queryTab.html' %}
+            {% include 'uploadTab.html' %}
+            {% include 'searchTab.html' %}
+        </div>
+    </div>
+</div>
