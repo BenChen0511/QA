@@ -10,7 +10,26 @@ document.getElementById("searchForm").onsubmit = async (e) => {
     const response = await fetch(`/query?question=` + encodeURIComponent(question));
 
     if (!response.ok) {
-        document.getElementById("stream").innerHTML = "<p>❌ 查詢失敗，請稍後再試。</p>";
+        let errorMessage = "❌ 查詢失敗，請稍後再試。";
+
+        // 根據錯誤碼顯示不同訊息
+        switch (response.status) {
+            case 500:
+                errorMessage = "⚠️ 系統錯誤500可能是記憶體不足或模型錯誤。";
+                break;
+            case 404:
+                errorMessage = "❌ 找不到資源404。";
+                break;
+            case 403:
+                errorMessage = "🚫 權限不足403。";
+                break;
+            case 400:
+                errorMessage = "⚠️ 錯誤的請求400請檢查輸入內容。";
+                break;
+        }
+
+        alert(errorMessage);
+        document.getElementById("stream").innerHTML = `<p>${errorMessage}</p>`;
         button.disabled = false;
         button.innerHTML = originalText;
         return;
@@ -26,7 +45,7 @@ document.getElementById("searchForm").onsubmit = async (e) => {
         const { done, value } = await reader.read();
         if (done) break;
         result += decoder.decode(value, { stream: true });
-        document.getElementById("stream").innerHTML = result;
+        document.getElementById("stream").innerHTML = result.replace(/\n/g, "<br>");
     }
 
     button.disabled = false;
@@ -87,23 +106,15 @@ document.getElementById("searchQuestionForm").onsubmit = async (e) => {
 };
 
 document.addEventListener("DOMContentLoaded", function () {
-    console.log("✅ app.js 載入成功");
-
     const loginForm = document.getElementById("loginForm");
-    if (!loginForm) {
-        console.error("❌ 找不到 loginForm");
-        return;
-    }
-
     loginForm.addEventListener("submit", async function (e) {
         e.preventDefault();
-        console.log("🚀 登入表單已提交");
 
         const username = document.getElementById("username").value;
         const password = document.getElementById("password").value;
 
         try {
-            const response = await fetch("/login", {
+            const response = await fetch("/api/login", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -112,33 +123,36 @@ document.addEventListener("DOMContentLoaded", function () {
             });
 
             if (!response.ok) {
-                throw new Error(`伺服器回應錯誤：${response.status}`);
+                const errorText = await response.text();
+                throw new Error(`${errorText}`);
             }
+            else {
+                alert("✅ 登入成功：" + username);
 
-            let result;
-            try {
-                result = await response.json();
-            } catch (jsonError) {
-                throw new Error("❌ 無法解析 JSON 回應：" + jsonError.message);
+                const html = await response.text();
+                document.getElementById("authSection").innerHTML = html;
+
+                // 關閉登入 modal
+                const loginModal = document.getElementById("staticBackdrop");
+                const modalInstance = bootstrap.Modal.getInstance(loginModal);
+                if (modalInstance) {
+                    modalInstance.hide();
+                }
             }
-
-            console.log("🔁 後端回應：", result);
-
-            if (result.success) {
-                alert("✅ 登入成功：" + result.message);
-            } else {
-                alert("❌ 登入失敗：" + result.message);
-            }
-        } catch (error) {
-            console.error("❗ 登入錯誤：", error);
-            alert("⚠️ 登入時發生錯誤：" + error.message);
+        }
+        catch (error) {
+            alert("⚠️ 登入時發生錯誤：" + error);
         }
     });
 });
 
-
-
-
+document.addEventListener("click", async function (e) {
+    if (e.target && e.target.id === "logoutBtn") {
+        const response = await fetch("/api/logout");
+        const html = await response.text();
+        document.getElementById("authSection").innerHTML = html;
+    }
+});
 
 function showTab(tabName) {
     let titleText = "";

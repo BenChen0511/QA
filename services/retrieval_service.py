@@ -40,5 +40,5 @@ def get_qa_components():
     
     qa_chain = create_stuff_documents_chain(llm=llm, prompt=prompt)
     
-    return llm, retriever_runnable, qa_chain
+    return retriever_runnable, qa_chain
 
