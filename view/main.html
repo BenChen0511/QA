@@ -17,8 +17,8 @@
                     }
                 </style>
                 <ul class="dropdown-menu w-100 bg-dark" aria-labelledby="dropdownMenuButton">
-                    <li><a class="dropdown-item text-light" href="#" onclick="showTab('query')">查詢問答</a></li>
-                    <li><a class="dropdown-item text-light" href="#" onclick="showTab('search')">問題查找</a></li>
+                    <li><a class="dropdown-item text-light" href="#" onclick="showTab('search')">查詢問答</a></li>
+                    <li><a class="dropdown-item text-light" href="#" onclick="showTab('query')">問題查找</a></li>
                     <li><a class="dropdown-item text-light" href="#" onclick="showTab('upload')">檔案上傳</a></li>
                 </ul>
             </div>
@@ -34,10 +34,9 @@
                 style="font-size: 1.8rem; font-weight: bold;">
                 查詢問答
             </div>
-
+            {% include 'searchTab.html' %}
             {% include 'queryTab.html' %}
             {% include 'uploadTab.html' %}
-            {% include 'searchTab.html' %}
         </div>
     </div>
 </div>

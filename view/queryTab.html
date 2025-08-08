@@ -1,24 +1,18 @@
-<div id="queryTab">
+<div id="queryTab" style="display: none;">
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-8">
-                <div id="answer" class="mb-3">
-                    <label class="fw-bold">
-                        <img src="/static/image/ollamaW.png" width="30" height="30" />
-                        Ollama：
-                    </label>
-
-                    <div id="stream" class="mt-2 p-3 bg-secondary text-light border rounded"
-                        style="min-height: 200px; max-height: 200px; overflow-y: auto; white-space: pre-wrap;">
-                    </div>
-
-                </div>
-
-                <form id="searchForm" class="d-flex mb-3">
-                    <input type="text" id="question" class="form-control me-2 bg-dark text-light border-secondary"
-                        placeholder="請輸入您的問題">
-                    <button type="submit" class="btn btn-outline-light" style="min-width: 120px;">發問</button>
+                <form id="queryQuestionForm" class="d-flex mb-3">
+                    <input type="text" id="queryQuestion"
+                        class="form-control me-2 bg-dark text-light border-secondary"
+                        placeholder="請輸入要查找的問題關鍵字">
+                    <button type="submit" class="btn btn-outline-light" style="min-width: 120px;">查找</button>
                 </form>
+
+                <div id="queryResults" class="mt-2 p-3 bg-secondary text-light border rounded"
+                    style="min-height: 300px; max-height: 400px; overflow-y: auto;">
+                    <!-- 回傳結果列表會顯示在這裡 -->
+                </div>
             </div>
         </div>
     </div>

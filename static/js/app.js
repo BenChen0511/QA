@@ -7,24 +7,24 @@ document.getElementById("searchForm").onsubmit = async (e) => {
     button.innerHTML = "⏳ 思考中...";
 
     const question = document.getElementById("question").value;
-    const response = await fetch(`/query?question=` + encodeURIComponent(question));
+    const response = await fetch(`/search?question=` + encodeURIComponent(question));
 
     if (!response.ok) {
-        let errorMessage = "❌ 查詢失敗，請稍後再試。";
+        let errorMessage = "查詢失敗，請稍後再試...";
 
         // 根據錯誤碼顯示不同訊息
         switch (response.status) {
             case 500:
-                errorMessage = "⚠️ 系統錯誤500可能是記憶體不足或模型錯誤。";
+                errorMessage = "系統錯誤500可能是記憶體不足或模型錯誤。";
                 break;
             case 404:
-                errorMessage = "❌ 找不到資源404。";
+                errorMessage = "找不到資源404。";
                 break;
             case 403:
-                errorMessage = "🚫 權限不足403。";
+                errorMessage = "權限不足403。";
                 break;
             case 400:
-                errorMessage = "⚠️ 錯誤的請求400請檢查輸入內容。";
+                errorMessage = "錯誤的請求400請檢查輸入內容。";
                 break;
         }
 
@@ -52,7 +52,7 @@ document.getElementById("searchForm").onsubmit = async (e) => {
     button.innerHTML = originalText;
 };
 
-document.getElementById("searchQuestionForm").onsubmit = async (e) => {
+document.getElementById("queryQuestionForm").onsubmit = async (e) => {
     e.preventDefault();
 
     const button = e.target.querySelector("button");
@@ -60,11 +60,11 @@ document.getElementById("searchQuestionForm").onsubmit = async (e) => {
     button.disabled = true;
     button.innerHTML = "⏳ 查找中...";
 
-    const keyword = document.getElementById("searchQuestion").value;
-    const response = await fetch(`/search?keyword=` + encodeURIComponent(keyword));
+    const keyword = document.getElementById("queryQuestion").value;
+    const response = await fetch(`/query?keyword=` + encodeURIComponent(keyword));
 
     if (!response.ok) {
-        document.getElementById("searchResults").innerHTML = "<p>❌ 查找失敗，請稍後再試。</p>";
+        document.getElementById("queryResults").innerHTML = "<p>查找失敗，請稍後再試。</p>";
         button.disabled = false;
         button.innerHTML = originalText;
         return;
@@ -73,7 +73,7 @@ document.getElementById("searchQuestionForm").onsubmit = async (e) => {
     const results = await response.json();
 
     // 顯示結果列表
-    const container = document.getElementById("searchResults");
+    const container = document.getElementById("queryResults");
     container.innerHTML = "";
 
     if (results.length === 0) {
@@ -127,7 +127,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 throw new Error(`${errorText}`);
             }
             else {
-                alert("✅ 登入成功：" + username);
+                alert("登入成功：" + username);
 
                 const html = await response.text();
                 document.getElementById("authSection").innerHTML = html;
@@ -141,7 +141,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
         catch (error) {
-            alert("⚠️ 登入時發生錯誤：" + error);
+            alert("登入時發生錯誤：" + error);
         }
     });
 });
@@ -157,13 +157,13 @@ document.addEventListener("click", async function (e) {
 function showTab(tabName) {
     let titleText = "";
     switch (tabName) {
-        case "query":
+        case "search":
             titleText = "查詢問答";
             break;
         case "upload":
             titleText = "檔案上傳";
             break;
-        case "search":
+        case "query":
             titleText = "問題查找";
             break;
         default:
@@ -172,9 +172,9 @@ function showTab(tabName) {
 
     document.getElementById("mainContentTitle").innerText = titleText;
 
-    document.getElementById("queryTab").style.display = tabName === "query" ? "block" : "none";
-    document.getElementById("uploadTab").style.display = tabName === "upload" ? "block" : "none";
     document.getElementById("searchTab").style.display = tabName === "search" ? "block" : "none";
+    document.getElementById("uploadTab").style.display = tabName === "upload" ? "block" : "none";
+    document.getElementById("queryTab").style.display = tabName === "query" ? "block" : "none";
 
     const items = document.querySelectorAll(".dropdown-item");
     items.forEach(item => {
@@ -186,3 +186,35 @@ function showTab(tabName) {
         activeItem.classList.add("active", "bg-secondary", "text-white");
     }
 }
+
+async function uploadFile() {
+    const input = document.getElementById("fileInput");
+    const file = input.files[0];
+    if (!file) {
+        alert("請選擇檔案！");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+        const response = await fetch("http://localhost:8000/upload", {
+            method: "POST",
+            body: formData
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            alert(result.detail || "上傳失敗！");
+        } else {
+            alert(result.message || "上傳並建立資料庫完成！");
+        }
+
+    } catch (error) {
+        console.error("上傳失敗", error);
+        alert("上傳失敗！");
+    }
+}
+
