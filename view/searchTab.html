@@ -3,7 +3,7 @@
         <div class="row justify-content-center">
             <div class="col-md-8">
                 <div id="answer" class="mb-3">
-                    <label class="fw-bold">
+                    <label class="fw-bold mb-0 d-flex align-items-end">
                         <img src="/static/image/ollamaW.png" width="30" height="30" />
                         Ollama：
                     </label>
@@ -19,6 +19,13 @@
                         placeholder="請輸入您的問題">
                     <button type="submit" class="btn btn-outline-light" style="min-width: 120px;">發問</button>
                 </form>
+
+                <div id="feedbackButtons" style="display: none;"
+                    class="align-items-center justify-content-center gap-3 mt-3">
+                    <label class="fw-bold mb-0">這個回答是否有幫助?</label>
+                    <button id="likeBtn" class="btn btn-outline-success">👍</button>
+                    <button id="dislikeBtn" class="btn btn-outline-danger">👎</button>
+                </div>
             </div>
         </div>
     </div>

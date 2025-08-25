@@ -1,6 +1,6 @@
 document.getElementById("searchForm").onsubmit = async (e) => {
     e.preventDefault();
-
+    hideFeedbackButtons();
     const button = e.target.querySelector("button");
     const originalText = button.innerHTML;
     button.disabled = true;
@@ -50,6 +50,8 @@ document.getElementById("searchForm").onsubmit = async (e) => {
 
     button.disabled = false;
     button.innerHTML = originalText;
+    document.getElementById("feedbackButtons").style.display = "flex";
+    document.getElementById("feedbackButtons").classList.add("d-flex");
 };
 
 document.getElementById("queryQuestionForm").onsubmit = async (e) => {
@@ -100,57 +102,75 @@ document.getElementById("queryQuestionForm").onsubmit = async (e) => {
 
         container.appendChild(ul);
     }
-
     button.disabled = false;
     button.innerHTML = originalText;
 };
 
 document.addEventListener("DOMContentLoaded", function () {
+    const likeBtn = document.getElementById("likeBtn");
+    const dislikeBtn = document.getElementById("dislikeBtn");
+    if (likeBtn && dislikeBtn) {
+        likeBtn.addEventListener("click", async function () {
+            await sendFeedback("like");
+            alert("感謝您的回饋，我們會持續改進！");
+            hideFeedbackButtons();
+        });
+
+        dislikeBtn.addEventListener("click", async function () {
+            await sendFeedback("dislike");
+            alert("感謝您的回饋，我們會持續改進！");
+            hideFeedbackButtons();
+        });
+    }
+
+
+    // 登入表單事件
     const loginForm = document.getElementById("loginForm");
-    loginForm.addEventListener("submit", async function (e) {
-        e.preventDefault();
+    if (loginForm) {
+        loginForm.addEventListener("submit", async function (e) {
+            e.preventDefault();
+            const username = document.getElementById("username")?.value ?? "";
+            const password = document.getElementById("password")?.value ?? "";
 
-        const username = document.getElementById("username").value;
-        const password = document.getElementById("password").value;
+            try {
+                const response = await fetch("/api/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username, password }),
+                    credentials: "same-origin"
+                });
 
-        try {
-            const response = await fetch("/api/login", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ username, password })
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`${errorText}`);
-            }
-            else {
-                alert("登入成功：" + username);
-
-                const html = await response.text();
-                document.getElementById("authSection").innerHTML = html;
-
-                // 關閉登入 modal
-                const loginModal = document.getElementById("staticBackdrop");
-                const modalInstance = bootstrap.Modal.getInstance(loginModal);
-                if (modalInstance) {
-                    modalInstance.hide();
+                if (response.ok || response.redirected || response.status === 303) {
+                    // 可選：先關閉登入視窗
+                    const modalEl = document.getElementById("staticBackdrop");
+                    if (modalEl && window.bootstrap) {
+                        (window.bootstrap.Modal.getInstance(modalEl) || new window.bootstrap.Modal(modalEl)).hide();
+                    }
+                    // 整頁跳轉，讓模板依 session 重渲染
+                    window.location.replace("/");
+                } else {
+                    const t = await response.text().catch(() => "");
+                    alert(t || "登入失敗");
                 }
+            } catch (err) {
+                alert("登入時發生錯誤：" + err);
             }
-        }
-        catch (error) {
-            alert("登入時發生錯誤：" + error);
-        }
-    });
+        });
+    }
 });
 
 document.addEventListener("click", async function (e) {
-    if (e.target && e.target.id === "logoutBtn") {
-        const response = await fetch("/api/logout");
-        const html = await response.text();
-        document.getElementById("authSection").innerHTML = html;
+    const target = e.target;
+    if (target && target.id === "logoutBtn") {
+        try {
+            await fetch("/api/logout", {
+                method: "GET",
+                credentials: "same-origin",
+                redirect: "manual"
+            });
+        } finally {
+            window.location.replace("/"); // 無論如何刷新頁面
+        }
     }
 });
 
@@ -169,22 +189,29 @@ function showTab(tabName) {
         default:
             titleText = "Q&A查詢系統";
     }
+    const titleEl = document.getElementById("mainContentTitle");
+    if (titleEl) titleEl.innerText = titleText;
 
-    document.getElementById("mainContentTitle").innerText = titleText;
+    // 防呆：元素可能不存在（非 admin 沒有 uploadTab）
+    const searchTab = document.getElementById("searchTab");
+    const uploadTab = document.getElementById("uploadTab");
+    const queryTab = document.getElementById("queryTab");
 
-    document.getElementById("searchTab").style.display = tabName === "search" ? "block" : "none";
-    document.getElementById("uploadTab").style.display = tabName === "upload" ? "block" : "none";
-    document.getElementById("queryTab").style.display = tabName === "query" ? "block" : "none";
+    if (searchTab) searchTab.style.display = tabName === "search" ? "block" : "none";
+    if (uploadTab) uploadTab.style.display = tabName === "upload" ? "block" : "none";
+    if (queryTab) queryTab.style.display = tabName === "query" ? "block" : "none";
 
     const items = document.querySelectorAll(".dropdown-item");
-    items.forEach(item => {
-        item.classList.remove("active", "bg-secondary", "text-white");
-    });
+    items.forEach(item => item.classList.remove("active", "bg-secondary", "text-white"));
 
     const activeItem = document.querySelector(`.dropdown-item[onclick="showTab('${tabName}')"]`);
-    if (activeItem) {
-        activeItem.classList.add("active", "bg-secondary", "text-white");
-    }
+    if (activeItem) activeItem.classList.add("active", "bg-secondary", "text-white");
+}
+
+function hideFeedbackButtons() {
+    const feedbackDiv = document.getElementById("feedbackButtons");
+    feedbackDiv.style.display = "none";
+    feedbackDiv.classList.remove("d-flex");
 }
 
 async function uploadFile() {
@@ -217,4 +244,47 @@ async function uploadFile() {
         alert("上傳失敗！");
     }
 }
+
+async function sendFeedback(type) {
+    try {
+        const response = await fetch("/api/feedback", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                question: document.getElementById("question").value,
+                answer: document.getElementById("stream").innerText,
+                feedback: type
+            })
+        });
+
+        if (!response.ok) {
+            console.error("回饋送出失敗", await response.text());
+        }
+    } catch (error) {
+        console.error("回饋送出錯誤", error);
+    }
+}
+
+function sendLogoutBeacon() {
+    if (navigator.sendBeacon) {
+        navigator.sendBeacon("/api/logout-beacon");
+    } else {
+        // 後援：在卸載時送 keepalive 請求
+        fetch("/api/logout-beacon", { method: "POST", keepalive: true, credentials: "same-origin" }).catch(() => { });
+    }
+}
+
+// 分頁被隱藏/關閉/跳離網站時清除 session
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") sendLogoutBeacon();
+});
+window.addEventListener("pagehide", () => {
+    sendLogoutBeacon();
+});
+
+window.addEventListener("load", () => {
+    fetch("/api/logout-beacon", { method: "POST", keepalive: true, credentials: "same-origin" }).catch(() => { });
+});
 

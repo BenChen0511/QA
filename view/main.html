@@ -17,14 +17,20 @@
                     }
                 </style>
                 <ul class="dropdown-menu w-100 bg-dark" aria-labelledby="dropdownMenuButton">
-                    <li><a class="dropdown-item text-light" href="#" onclick="showTab('search')">查詢問答</a></li>
-                    <li><a class="dropdown-item text-light" href="#" onclick="showTab('query')">問題查找</a></li>
-                    <li><a class="dropdown-item text-light" href="#" onclick="showTab('upload')">檔案上傳</a></li>
+                    <li><a class="dropdown-item text-light" href="#" data-tab="search">查詢問答</a></li>
+                    <li><a class="dropdown-item text-light" href="#" data-tab="query">問題查找</a></li>
+                    {% if admin %}
+                    <li><a class="dropdown-item text-light" href="#" data-tab="upload">檔案上傳</a></li>
+                    {% endif %}
                 </ul>
             </div>
 
             <div id="authSection" class="position-absolute bottom-0 start-0 w-100 p-3 text-center">
+                {% if admin or username %}
+                {% include 'logoutButton.html' %}
+                {% else %}
                 {% include 'loginButton.html' %}
+                {% endif %}
             </div>
         </div>
 
@@ -36,7 +42,9 @@
             </div>
             {% include 'searchTab.html' %}
             {% include 'queryTab.html' %}
+            {% if admin %}
             {% include 'uploadTab.html' %}
+            {% endif %}
         </div>
     </div>
 </div>
